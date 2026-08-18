@@ -1,0 +1,125 @@
+// src/types/index.ts
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: "student" | "admin";
+  profileImage?: string;
+  createdAt: Date;
+}
+
+export interface PracticeVideo {
+  id: string;
+  title: string;
+  description?: string;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  duration: number;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  categoryId: string;
+  views: number;
+  isPublished: boolean;
+  createdAt: Date;
+}
+
+export interface Composition {
+  id: string;
+  title: string;
+  tag?: string;
+  description?: string;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  price: number;
+  duration?: number;
+  previewVideoUrl?: string;
+  thumbnailUrl?: string;
+  isPublished: boolean;
+  createdAt: Date;
+  files: CompositionFile[];
+}
+
+export interface CompositionFile {
+  id: string;
+  compositionId: string;
+  fileType: "pdf" | "video";
+  fileUrl: string;
+  isPreview: boolean;
+  title?: string;
+}
+
+export interface Masterclass {
+  id: string;
+  title: string;
+  name: string;
+  about?: string;
+  price: number;
+  duration: number;
+  previewVideoUrl?: string;
+  thumbnailUrl?: string;
+  isPublished: boolean;
+  createdAt: Date;
+  lessons: MasterclassLesson[];
+}
+
+export interface MasterclassLesson {
+  id: string;
+  masterclassId: string;
+  lessonTitle: string;
+  videoUrl: string;
+  description?: string;
+  orderNo: number;
+  duration?: number;
+}
+
+export interface Reel {
+  id: string;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  duration: number;
+  views: number;
+  isPublished: boolean;
+  createdAt: Date;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  stock: number;
+  isPublished: boolean;
+  createdAt: Date;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  orderDate: Date;
+  totalAmount: number;
+  status: "pending" | "paid" | "cancelled";
+  paymentId?: string;
+  shippingAddress?: string;
+  items: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  orderId: string;
+  itemType: "composition" | "masterclass" | "product";
+  itemId: string;
+  price: number;
+  quantity: number;
+}
+
+export interface UserLibrary {
+  id: string;
+  userId: string;
+  itemType: "composition" | "masterclass";
+  itemId: string;
+  progress?: number;
+  lastAccessed?: Date;
+  purchasedAt: Date;
+}

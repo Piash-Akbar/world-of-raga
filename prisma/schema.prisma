@@ -1,0 +1,238 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  student
+  admin
+}
+
+enum OrderStatus {
+  pending
+  paid
+  cancelled
+}
+
+enum ItemType {
+  composition
+  masterclass
+  product
+}
+
+enum CategoryType {
+  practice
+  composition
+  masterclass
+  reel
+  product
+}
+
+enum Level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(student)
+  profileImage  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  orders        Order[]
+  library       UserLibrary[]
+  profile       Profile?
+}
+
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio           String?
+  instrument    String?
+  experience    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  type        CategoryType
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  practiceVideos PracticeVideo[]
+}
+
+model PracticeVideo {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  level       Level
+  duration    Int      // in seconds
+  videoUrl    String
+  thumbnailUrl String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  views       Int      @default(0)
+  isPublished Boolean  @default(true)
+}
+
+model Composition {
+  id          String   @id @default(cuid())
+  title       String
+  tag         String?  // e.g., "Raga Yaman", "Teentaal"
+  description String?
+  level       Level
+  price       Float
+  duration    Int?     // in seconds
+  previewVideoUrl String?
+  thumbnailUrl String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  files       CompositionFile[]
+  orderItems  OrderItem[] @relation("CompositionOrderItems")
+  library     UserLibrary[] @relation("CompositionLibrary")
+}
+
+model CompositionFile {
+  id            String   @id @default(cuid())
+  compositionId String
+  composition   Composition @relation(fields: [compositionId], references: [id], onDelete: Cascade)
+  fileType      String   // pdf or video
+  fileUrl       String
+  isPreview     Boolean  @default(false)
+  title         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Masterclass {
+  id              String   @id @default(cuid())
+  title           String
+  name            String   // Maestro name
+  about           String?
+  price           Float
+  duration        Int      // in seconds
+  previewVideoUrl String?
+  thumbnailUrl    String?
+  isPublished     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  lessons         MasterclassLesson[]
+  orderItems      OrderItem[] @relation("MasterclassOrderItems")
+  library         UserLibrary[] @relation("MasterclassLibrary")
+}
+
+model MasterclassLesson {
+  id            String   @id @default(cuid())
+  masterclassId String
+  masterclass   Masterclass @relation(fields: [masterclassId], references: [id], onDelete: Cascade)
+  lessonTitle   String
+  videoUrl      String
+  description   String?
+  orderNo       Int
+  duration      Int?     // in seconds
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Reel {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  videoUrl    String
+  thumbnailUrl String?
+  duration    Int      // in seconds
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  views       Int      @default(0)
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  description String?
+  price       Float
+  imageUrl    String?
+  stock       Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems  OrderItem[] @relation("ProductOrderItems")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  orderDate   DateTime    @default(now())
+  totalAmount Float
+  status      OrderStatus @default(pending)
+  paymentId   String?
+  shippingAddress String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemType        ItemType
+  itemId          String
+  compositionId   String?
+  masterclassId   String?
+  productId       String?
+  price           Float
+  quantity        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  composition     Composition? @relation("CompositionOrderItems", fields: [compositionId], references: [id])
+  masterclass     Masterclass? @relation("MasterclassOrderItems", fields: [masterclassId], references: [id])
+  product         Product?     @relation("ProductOrderItems", fields: [productId], references: [id])
+}
+
+model UserLibrary {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType      ItemType
+  itemId        String
+  compositionId String?
+  masterclassId String?
+  progress      Int?     @default(0) // percentage
+  lastAccessed  DateTime?
+  purchasedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  composition   Composition? @relation("CompositionLibrary", fields: [compositionId], references: [id])
+  masterclass   Masterclass? @relation("MasterclassLibrary", fields: [masterclassId], references: [id])
+
+  @@unique([userId, itemType, itemId])
+}
