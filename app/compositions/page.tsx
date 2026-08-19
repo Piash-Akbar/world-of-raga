@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from 'react-dom';
 import Link from "next/link";
 import { Music2, Play, ShoppingCart, Eye, ChevronDown, Search } from "lucide-react";
 import { getOptimizedVideoUrl } from '@/lib/videoUtils';
@@ -22,6 +23,12 @@ interface Composition {
 export default function CompositionsPage() {
   const [compositions, setCompositions] = useState<Composition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Composition | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -81,7 +88,7 @@ export default function CompositionsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((comp) => (
-            <div key={comp.id} className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group">
+            <div key={comp.id} onClick={() => setSelected(comp)} className="cursor-pointer bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group">
               <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
                 {comp.previewVideoUrl || comp.videoUrl ? (
                   <video
@@ -116,12 +123,58 @@ export default function CompositionsPage() {
                     <button className="bg-amber-400 hover:bg-amber-500 text-black text-sm px-3 py-1 rounded font-medium transition flex items-center gap-1">
                       <ShoppingCart className="w-4 h-4" /> Buy
                     </button>
+                    {comp.pdfUrl ? (
+                      <a
+                        href={comp.pdfUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        className="bg-white/10 hover:bg-white/20 text-white text-sm px-3 py-1 rounded font-medium transition flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        📄 Download
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+        {/* Global modal rendered once via portal */}
+        {selected && mounted && createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+            <div className="bg-gray-900 rounded-lg max-w-2xl w-full p-6 border border-white/10">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">{selected.title}</h2>
+                  <p className="text-white/40 mt-1">{selected.description}</p>
+                </div>
+                <button onClick={() => setSelected(null)} className="text-white/40 hover:text-white">Close</button>
+              </div>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-white/60">Level: <span className="text-white">{selected.level}</span></p>
+                  <p className="text-white/60 mt-2">Duration: <span className="text-white">{Math.floor(selected.duration/60)}:{String(selected.duration%60).padStart(2,'0')}</span></p>
+                  <p className="text-white/60 mt-2">Price: <span className="text-amber-400">৳{selected.price}</span></p>
+                </div>
+                <div>
+                  {selected.pdfUrl ? (
+                    <a href={selected.pdfUrl} target="_blank" rel="noreferrer" className="inline-block bg-amber-400 text-black px-4 py-2 rounded font-medium">Download Sheet Music (PDF)</a>
+                  ) : (
+                    <p className="text-white/40">No sheet music available.</p>
+                  )}
+                  {selected.videoUrl && (
+                    <div className="mt-3">
+                      <video src={getOptimizedVideoUrl(selected.previewVideoUrl || selected.videoUrl || '')} controls className="w-full rounded" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>,
+          typeof document !== 'undefined' ? document.body : null
+        )}
         {filtered.length === 0 && <p className="text-white/40 text-center py-12">No compositions found.</p>}
       </div>
     </div>

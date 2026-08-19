@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
     const duration = parseInt(formData.get('duration') as string) || 0;
     const lessons = JSON.parse(formData.get('lessons') as string || '[]');
     const videoFile = formData.get('video') as File | null;
+    const videoUrlField = formData.get('videoUrl') as string | null;
+    const publicIdField = formData.get('publicId') as string | null;
 
     if (!title || !maestro) {
       return NextResponse.json({ error: 'Title and maestro are required' }, { status: 400 });
@@ -39,7 +41,12 @@ export async function POST(req: NextRequest) {
 
     let previewVideoUrl = '';
     let thumbnailUrl = '';
-    if (videoFile) {
+
+    // If client uploaded directly to Cloudinary, accept the returned URL and public ID
+    if (videoUrlField) {
+      previewVideoUrl = videoUrlField;
+      if (publicIdField) thumbnailUrl = getVideoThumbnail(publicIdField);
+    } else if (videoFile) {
       const buffer = Buffer.from(await videoFile.arrayBuffer());
       
       // Choose upload method based on file size

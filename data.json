@@ -65,6 +65,40 @@
       "isPublished": true,
       "createdAt": "2026-08-19T04:29:20.513Z",
       "id": "mszle2v4xc5b"
+    },
+    {
+      "title": "title02",
+      "description": "",
+      "level": "Intermediate",
+      "price": 999,
+      "duration": 2323,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787150824/world-of-raag/compositions/lcgwteceyyset1hx7yse.mp4",
+      "pdfUrl": "",
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787150824/world-of-raag/compositions/lcgwteceyyset1hx7yse.mp4",
+      "thumbnailUrl": "https://res.cloudinary.com/qqlzlily/video/upload/q_auto/f_auto/v1/world-of-raag/compositions/lcgwteceyyset1hx7yse.jpg?_a=BAMAAAiu0",
+      "tags": [
+        ""
+      ],
+      "isPublished": true,
+      "createdAt": "2026-08-19T14:47:14.361Z",
+      "id": "mt07gp89ljh6"
+    },
+    {
+      "title": "efws",
+      "description": "",
+      "level": "Intermediate",
+      "price": 0,
+      "duration": 0,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787156656/world-of-raag/compositions/tpck8gaerfzsnysgbnow.mp4",
+      "pdfUrl": "https://res.cloudinary.com/qqlzlily/raw/upload/v1787156658/world-of-raag/compositions/hh1qjbfvflqzu5ot0xzj",
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787156656/world-of-raag/compositions/tpck8gaerfzsnysgbnow.mp4",
+      "thumbnailUrl": "https://res.cloudinary.com/qqlzlily/video/upload/q_auto/f_auto/v1/world-of-raag/compositions/tpck8gaerfzsnysgbnow.jpg?_a=BAMAAAiu0",
+      "tags": [
+        ""
+      ],
+      "isPublished": true,
+      "createdAt": "2026-08-19T16:24:19.081Z",
+      "id": "mt0axjm1yb2g"
     }
   ],
   "masterclasses": [
@@ -80,6 +114,32 @@
       "isPublished": true,
       "createdAt": "2026-08-19T11:03:28.010Z",
       "id": "mszzgxe2niwe"
+    },
+    {
+      "title": "acasdc",
+      "maestro": "zczxczxc",
+      "about": "",
+      "price": 0,
+      "duration": 0,
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787138193/world-of-raag/masterclasses/jvqdgq6emkudm6yffo4q.mp4",
+      "thumbnailUrl": "https://res.cloudinary.com/qqlzlily/video/upload/q_auto/f_auto/v1/world-of-raag/masterclasses/jvqdgq6emkudm6yffo4q.jpg?_a=BAMAAAiu0",
+      "lessons": [],
+      "isPublished": true,
+      "createdAt": "2026-08-19T11:16:34.367Z",
+      "id": "mszzxs5brrc6"
+    },
+    {
+      "title": "hhhhhh",
+      "maestro": "kkkkkkk",
+      "about": "",
+      "price": 999,
+      "duration": 0,
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787149999/world-of-raag/masterclasses/ch7c4bjayvu1dtalh5dx.mp4",
+      "thumbnailUrl": "https://res.cloudinary.com/qqlzlily/video/upload/q_auto/f_auto/v1/world-of-raag/masterclasses/ch7c4bjayvu1dtalh5dx.jpg?_a=BAMAAAiu0",
+      "lessons": [],
+      "isPublished": true,
+      "createdAt": "2026-08-19T14:33:39.023Z",
+      "id": "mt06z83zquwq"
     }
   ],
   "reels": [
