@@ -1,0 +1,137 @@
+{
+  "practiceVideos": [
+    {
+      "title": "test",
+      "description": "test description",
+      "level": "Beginner",
+      "category": "Technique",
+      "duration": 200,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787111851/world-of-raag/practice-videos/ew3oodwc8a3ehbxot1kd.mp4",
+      "thumbnailUrl": "",
+      "views": 0,
+      "createdAt": "2026-08-19T03:57:55.728Z",
+      "id": "mszk9ok0jd13"
+    },
+    {
+      "title": "practice02",
+      "description": "practice regularly.....",
+      "level": "Beginner",
+      "category": "Technique",
+      "duration": 0,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787114549/world-of-raag/practice-videos/zytgmpecbqftvsapp2u5.mp4",
+      "thumbnailUrl": "",
+      "views": 0,
+      "createdAt": "2026-08-19T04:42:31.697Z",
+      "id": "mszlv1che6ba"
+    },
+    {
+      "title": "intonation",
+      "description": "practice to increase intonation",
+      "level": "Beginner",
+      "category": "Technique",
+      "duration": 0,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787114664/world-of-raag/practice-videos/ztzwm00ucktdvsjiq78y.mp4",
+      "thumbnailUrl": "",
+      "views": 0,
+      "createdAt": "2026-08-19T04:44:25.852Z",
+      "id": "mszlxhfgiap5"
+    }
+  ],
+  "compositions": [
+    {
+      "title": "title01",
+      "description": "kjacaiudcb aciuady",
+      "level": "Intermediate",
+      "price": 299,
+      "duration": 2323,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787113752/world-of-raag/compositions/ycuap4rthsplfjx6ygrp.mp4",
+      "pdfUrl": "",
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787113752/world-of-raag/compositions/ycuap4rthsplfjx6ygrp.mp4",
+      "thumbnailUrl": "",
+      "tags": [
+        "acadsc"
+      ],
+      "isPublished": true,
+      "createdAt": "2026-08-19T04:29:20.513Z",
+      "id": "mszle2v4xc5b"
+    }
+  ],
+  "masterclasses": [
+    {
+      "title": "Bow Control Essentials",
+      "maestro": "Ustad A. Rahman",
+      "about": "A guided masterclass on grip, stroke balance, and smooth articulation for a richer violin sound.",
+      "price": 1499,
+      "duration": 2100,
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787113752/world-of-raag/compositions/ycuap4rthsplfjx6ygrp.mp4",
+      "thumbnailUrl": "",
+      "lessons": [
+        "Warm-up and posture",
+        "Bow grip fundamentals",
+        "Tone production drills"
+      ],
+      "isPublished": true,
+      "createdAt": "2026-08-19T05:00:00.000Z",
+      "id": "mszmaster01"
+    },
+    {
+      "title": "Aesthetics of Raga Performance",
+      "maestro": "Shankari Sen",
+      "about": "Learn how phrase shaping and emotional pacing bring a performance to life.",
+      "price": 1999,
+      "duration": 1800,
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787114549/world-of-raag/practice-videos/zytgmpecbqftvsapp2u5.mp4",
+      "thumbnailUrl": "",
+      "lessons": [
+        "Phrase architecture",
+        "Taans and timing",
+        "Performance aesthetics"
+      ],
+      "isPublished": true,
+      "createdAt": "2026-08-19T05:10:00.000Z",
+      "id": "mszmaster02"
+    }
+  ],
+  "reels": [
+    {
+      "title": "Violin warm-up reel",
+      "description": "Quick daily warm-up routine",
+      "duration": 28,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787111851/world-of-raag/practice-videos/ew3oodwc8a3ehbxot1kd.mp4",
+      "thumbnailUrl": "",
+      "isPublished": true,
+      "createdAt": "2026-08-19T05:20:00.000Z",
+      "id": "mszreel01"
+    }
+  ],
+  "products": [],
+  "userLibrary": [
+    {
+      "id": "lib01",
+      "userId": "demo-user",
+      "itemType": "composition",
+      "itemId": "mszle2v4xc5b",
+      "progress": 72,
+      "lastAccessed": "2026-08-19T04:00:00.000Z",
+      "purchasedAt": "2026-08-19T03:30:00.000Z"
+    },
+    {
+      "id": "lib02",
+      "userId": "demo-user",
+      "itemType": "masterclass",
+      "itemId": "mszmaster01",
+      "progress": 100,
+      "lastAccessed": "2026-08-18T18:00:00.000Z",
+      "purchasedAt": "2026-08-18T10:00:00.000Z"
+    },
+    {
+      "id": "lib03",
+      "userId": "demo-user",
+      "itemType": "composition",
+      "itemId": "mszle2v4xc5b",
+      "progress": 0,
+      "lastAccessed": "Not started",
+      "purchasedAt": "2026-08-19T05:30:00.000Z"
+    }
+  ]
+}

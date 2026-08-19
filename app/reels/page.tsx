@@ -1,149 +1,127 @@
-// src/app/reels/page.tsx
 "use client";
 
-import { useState } from "react";
-import { Film, Play, Clock, Eye, Heart, Share2, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Music2, Play, ShoppingCart, Eye, ChevronDown, Search } from "lucide-react";
 
-const reels = [
-  {
-    id: "1",
-    title: "Yaman Phrase Preview",
-    description: "A beautiful phrase from Raga Yaman demonstrating the characteristic meend.",
-    duration: "0:20",
-    views: 4521,
-    likes: 234,
-    type: "Phrase",
-  },
-  {
-    id: "2",
-    title: "Maestro Rehearsal Moment",
-    description: "Behind the scenes from Pt. Rajendra Mishra's masterclass rehearsal.",
-    duration: "0:24",
-    views: 3876,
-    likes: 189,
-    type: "Behind the Scenes",
-  },
-  {
-    id: "3",
-    title: "Bow Technique in 20 Sec",
-    description: "Quick bow technique tip for better tone production and control.",
-    duration: "0:28",
-    views: 6234,
-    likes: 456,
-    type: "Technique",
-  },
-  {
-    id: "4",
-    title: "Workshop Sneak Peek",
-    description: "Exclusive preview of the upcoming 'Gayaki Ang' workshop.",
-    duration: "0:32",
-    views: 2987,
-    likes: 156,
-    type: "Preview",
-  },
-  {
-    id: "5",
-    title: "Raga Bhairav Phrase",
-    description: "Exploring the characteristic phrases of Raga Bhairav.",
-    duration: "0:18",
-    views: 5432,
-    likes: 321,
-    type: "Phrase",
-  },
-  {
-    id: "6",
-    title: "Tone Production Tip",
-    description: "Quick tip for achieving a singing tone on the violin.",
-    duration: "0:15",
-    views: 7654,
-    likes: 567,
-    type: "Technique",
-  },
-];
+interface Composition {
+  id: string;
+  title: string;
+  description?: string;
+  level: string;
+  price: number;
+  duration: number;
+  videoUrl?: string;
+  pdfUrl?: string;
+  previewVideoUrl?: string;
+  tags: string[];
+  isPublished: boolean;
+}
 
-const categories = ["All", "Technique", "Phrase", "Preview", "Behind the Scenes"];
+export default function CompositionsPage() {
+  const [compositions, setCompositions] = useState<Composition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedLevel, setSelectedLevel] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-export default function ReelsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  useEffect(() => {
+    fetch('/api/compositions')
+      .then(res => res.json())
+      .then(data => {
+        setCompositions(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const filtered = reels.filter(reel => 
-    selectedCategory === "All" || reel.type === selectedCategory
-  );
+  const filtered = compositions.filter(comp => {
+    const matchesLevel = selectedLevel === "All" || comp.level === selectedLevel;
+    const matchesSearch = comp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         comp.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesLevel && matchesSearch;
+  });
+
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white/40">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white">Violin Reels</h1>
-          <p className="text-white/40">Short-form violin content for discovery and inspiration.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white">Premium Compositions</h1>
+          <p className="text-white/40">Full learning video + downloadable sheet music PDF.</p>
         </div>
 
-        {/* Categories */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                selectedCategory === cat
-                  ? "bg-amber-400 text-black"
-                  : "bg-white/5 hover:bg-white/10 text-white/60 hover:text-white"
-              }`}
+        {/* Search and filter */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+            <input
+              type="text"
+              placeholder="Search compositions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-amber-400"
+            />
+          </div>
+          <div className="relative">
+            <select
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-400 cursor-pointer min-w-[150px]"
             >
-              {cat}
-            </button>
-          ))}
+              <option value="All">All Levels</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+          </div>
         </div>
 
-        {/* Reel Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map((reel) => (
-            <div
-              key={reel.id}
-              className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group cursor-pointer"
-            >
-              <div className="relative aspect-[9/16] bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center">
-                <div className="w-14 h-14 rounded-full bg-amber-400/20 flex items-center justify-center group-hover:bg-amber-400/30 transition">
-                  <Play className="w-6 h-6 text-amber-400" />
-                </div>
-                <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                  {reel.duration}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((comp) => (
+            <div key={comp.id} className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group">
+              <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
+                {comp.videoUrl || comp.previewVideoUrl ? (
+                  <video
+                    src={comp.videoUrl || comp.previewVideoUrl}
+                    className="w-full h-full object-cover"
+                    controls
+                    preload="metadata"
+                    playsInline
+                  />
+                ) : (
+                  <Music2 className="w-12 h-12 text-white/20" />
+                )}
+                <span className="absolute top-2 right-2 bg-amber-400/90 text-black text-xs px-2 py-1 rounded font-medium">৳{comp.price}</span>
+                <span className="absolute top-12 right-2 bg-white/90 text-black text-[10px] font-semibold px-2.5 py-1 rounded-md shadow-sm backdrop-blur-sm">
+                  {Math.floor(comp.duration / 60)}:{String(comp.duration % 60).padStart(2, '0')}
                 </span>
-                <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                  {reel.type}
-                </span>
-                <div className="absolute bottom-2 left-2 flex items-center gap-2">
-                  <span className="flex items-center gap-1 text-white/60 text-xs bg-black/50 px-2 py-1 rounded">
-                    <Eye className="w-3 h-3" />
-                    {reel.views}
-                  </span>
-                </div>
               </div>
-              <div className="p-3">
-                <h3 className="text-white text-sm font-medium">{reel.title}</h3>
-                <p className="text-white/40 text-xs mt-1 line-clamp-2">{reel.description}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 text-white/40 hover:text-red-400 text-xs transition">
-                      <Heart className="w-3 h-3" />
-                      {reel.likes}
+              <div className="p-4">
+                <h3 className="text-white font-semibold">{comp.title}</h3>
+                <p className="text-white/40 text-sm mt-1 line-clamp-2">{comp.description}</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {comp.tags?.map((tag, i) => (
+                    <span key={i} className="text-xs bg-white/5 px-2 py-0.5 rounded text-white/40">{tag}</span>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-amber-400 text-sm">{comp.level}</span>
+                  <div className="flex gap-2">
+                    <button className="text-white/60 hover:text-white text-sm transition flex items-center gap-1">
+                      <Play className="w-4 h-4" /> Preview
+                    </button>
+                    <button className="bg-amber-400 hover:bg-amber-500 text-black text-sm px-3 py-1 rounded font-medium transition flex items-center gap-1">
+                      <ShoppingCart className="w-4 h-4" /> Buy
                     </button>
                   </div>
-                  <button className="text-white/40 hover:text-white text-xs transition">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
-
-        {filtered.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-white/40">No reels found in this category.</p>
-          </div>
-        )}
+        {filtered.length === 0 && <p className="text-white/40 text-center py-12">No compositions found.</p>}
       </div>
     </div>
   );

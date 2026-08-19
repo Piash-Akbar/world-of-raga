@@ -53,13 +53,13 @@ export function Footer() {
             <p className="text-sm text-white/40 mb-3">
               Subscribe for updates on new compositions and masterclasses.
             </p>
-            <form className="flex">
+            <form className="flex max-w-sm">
               <input
                 type="email"
                 placeholder="Your email"
-                className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-l-md text-white placeholder-white/30 focus:outline-none focus:border-amber-400"
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-l-md text-white placeholder-white/30 focus:outline-none focus:border-amber-400"
               />
-              <button className="px-4 py-2 bg-amber-400 text-black font-medium rounded-r-md hover:bg-amber-500 transition">
+              <button className="px-4 py-2 bg-amber-400 text-black font-medium rounded-r-md hover:bg-amber-500 transition whitespace-nowrap">
                 Subscribe
               </button>
             </form>

@@ -1,7 +1,7 @@
 // src/app/admin/dashboard/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
   BarChart3, 
@@ -19,11 +19,11 @@ import {
   MoreVertical
 } from "lucide-react";
 
-const stats = [
-  { label: "Free Videos", value: "94", change: "+6", trend: "up", icon: Video },
-  { label: "Compositions", value: "38", change: "+4", trend: "up", icon: Music },
-  { label: "Masterclasses", value: "12", change: "0", trend: "neutral", icon: BookOpen },
-  { label: "Reels", value: "126", change: "+24", trend: "up", icon: Film },
+const initialStats = [
+  { label: "Free Videos", value: "0", change: "0", trend: "neutral", icon: Video },
+  { label: "Compositions", value: "0", change: "0", trend: "neutral", icon: Music },
+  { label: "Masterclasses", value: "0", change: "0", trend: "neutral", icon: BookOpen },
+  { label: "Reels", value: "0", change: "0", trend: "neutral", icon: Film },
 ];
 
 const recentActivity = [
@@ -48,6 +48,59 @@ const topContent = [
 ];
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState(initialStats);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const [practiceRes, compositionsRes, masterclassesRes] = await Promise.all([
+          fetch('/api/practice-videos'),
+          fetch('/api/compositions'),
+          fetch('/api/masterclasses'),
+        ]);
+
+        const practice = await practiceRes.json();
+        const compositions = await compositionsRes.json();
+        const masterclasses = await masterclassesRes.json();
+
+        setStats([
+          {
+            label: 'Free Videos',
+            value: String(Array.isArray(practice) ? practice.length : 0),
+            change: 'live',
+            trend: 'up',
+            icon: Video,
+          },
+          {
+            label: 'Compositions',
+            value: String(Array.isArray(compositions) ? compositions.length : 0),
+            change: 'live',
+            trend: 'up',
+            icon: Music,
+          },
+          {
+            label: 'Masterclasses',
+            value: String(Array.isArray(masterclasses) ? masterclasses.length : 0),
+            change: 'live',
+            trend: 'up',
+            icon: BookOpen,
+          },
+          {
+            label: 'Reels',
+            value: '0',
+            change: '0',
+            trend: 'neutral',
+            icon: Film,
+          },
+        ]);
+      } catch (error) {
+        console.error('Failed to load dashboard counts:', error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-black py-8 px-4">
       <div className="max-w-7xl mx-auto">

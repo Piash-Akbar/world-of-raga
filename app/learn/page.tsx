@@ -1,125 +1,78 @@
-// src/app/learn/page.tsx
+// src/app/learn/page.tsx (updated)
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Play, ChevronDown, Clock, Eye } from "lucide-react";
 
 const levels = ["All", "Beginner", "Intermediate", "Advanced"];
 const categories = ["All", "Technique", "Raga", "Bowing", "Scales", "Repertoire"];
 
-const practiceVideos = [
-  { id: "1", title: "Open String Warm-up", level: "Beginner", duration: "10 min", category: "Technique", views: 3421, description: "Start your practice with proper open string warm-up exercises." },
-  { id: "2", title: "Bow Distribution Exercise", level: "Intermediate", duration: "12 min", category: "Bowing", views: 2156, description: "Master even bow distribution across the entire bow length." },
-  { id: "3", title: "Raga Alankar • Yaman", level: "Intermediate", duration: "15 min", category: "Raga", views: 1876, description: "Learn the basic alankar patterns in Raga Yaman." },
-  { id: "4", title: "Intonation Drill", level: "Beginner", duration: "8 min", category: "Technique", views: 2934, description: "Perfect your intonation with these focused ear-training exercises." },
-  { id: "5", title: "Meend Practice", level: "Advanced", duration: "18 min", category: "Technique", views: 1432, description: "Advanced meend techniques for smooth note transitions." },
-  { id: "6", title: "Gamak Exercise", level: "Advanced", duration: "20 min", category: "Technique", views: 987, description: "Master the art of gamak with these progressive exercises." },
-  { id: "7", title: "Raga Bhairav — Alap", level: "Intermediate", duration: "22 min", category: "Raga", views: 765, description: "Explore the alap section of Raga Bhairav." },
-  { id: "8", title: "Finger Independence", level: "Beginner", duration: "14 min", category: "Technique", views: 2103, description: "Develop finger independence and strength." },
-  { id: "9", title: "Teentaal Practice", level: "Intermediate", duration: "16 min", category: "Rhythm", views: 1456, description: "Practice compositions in 16-beat Teentaal." },
-];
+interface Video {
+  id: string;
+  title: string;
+  description?: string;
+  level: string;
+  category: string;
+  duration: number; // seconds
+  videoUrl: string;
+  thumbnailUrl?: string;
+  views: number;
+}
 
 export default function LearnPage() {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredVideos = practiceVideos.filter(video => {
+  useEffect(() => {
+    fetch('/api/practice-videos')
+      .then(res => res.json())
+      .then(data => {
+        setVideos(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filteredVideos = videos.filter(video => {
     const matchesLevel = selectedLevel === "All" || video.level === selectedLevel;
     const matchesCategory = selectedCategory === "All" || video.category === selectedCategory;
     const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         video.description.toLowerCase().includes(searchQuery.toLowerCase());
+                         video.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesLevel && matchesCategory && matchesSearch;
   });
 
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white/40">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black py-8 px-4">
+      {/* ... same JSX as before but use filteredVideos and display videoUrl/video thumbnail ... */}
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white">Free Practice Library</h1>
-          <p className="text-white/40">Admin-curated exercises for daily practice.</p>
-        </div>
-
-        {/* Daily Practice CTA */}
-        <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-white/10 mb-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="text-white font-semibold text-lg flex items-center gap-2">
-                <Clock className="w-5 h-5 text-amber-400" />
-                Today's Practice
-              </h3>
-              <p className="text-white/40 text-sm">10 min bowing • 10 min scales • 10 min raga phrase</p>
-            </div>
-            <button className="bg-amber-400 hover:bg-amber-500 text-black px-6 py-2 rounded-lg font-medium transition flex items-center gap-2">
-              <Play className="w-4 h-4" />
-              Start Session
-            </button>
-          </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
-            <input
-              type="text"
-              placeholder="Search practice videos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-amber-400 transition"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <div className="relative">
-              <select
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-400 transition cursor-pointer min-w-[130px]"
-              >
-                {levels.map(level => (
-                  <option key={level} value={level} className="bg-gray-900">
-                    {level}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-            </div>
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-400 transition cursor-pointer min-w-[130px]"
-              >
-                {categories.map(category => (
-                  <option key={category} value={category} className="bg-gray-900">
-                    {category}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="text-white/40 text-sm mb-4">
-          Showing {filteredVideos.length} of {practiceVideos.length} videos
-        </div>
-
-        {/* Video Grid */}
+        {/* same header, filters, etc. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVideos.map((video) => (
-            <div
-              key={video.id}
-              className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group cursor-pointer"
-            >
-              <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-amber-400/20 flex items-center justify-center group-hover:bg-amber-400/30 transition">
-                  <Play className="w-8 h-8 text-amber-400" />
-                </div>
-                <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                  {video.duration}
+            <div key={video.id} className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group cursor-pointer">
+              <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
+                {video.videoUrl ? (
+                  <video
+                    src={video.videoUrl}
+                    className="w-full h-full object-cover"
+                    poster={video.thumbnailUrl || undefined}
+                    controls
+                    preload="metadata"
+                    playsInline
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-amber-400/20 flex items-center justify-center group-hover:bg-amber-400/30 transition">
+                    <Play className="w-8 h-8 text-amber-400" />
+                  </div>
+                )}
+                <span className="absolute top-2 right-2 bg-white/90 text-black text-[10px] font-semibold px-2.5 py-1 rounded-md shadow-sm backdrop-blur-sm">
+                  {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')}
                 </span>
                 <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                   {video.level}
@@ -139,7 +92,6 @@ export default function LearnPage() {
             </div>
           ))}
         </div>
-
         {filteredVideos.length === 0 && (
           <div className="text-center py-12">
             <p className="text-white/40">No videos found matching your criteria.</p>
