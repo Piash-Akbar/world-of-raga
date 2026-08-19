@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Users, Plus, Edit, Trash2, X, Play } from 'lucide-react';
 
+const MAX_MASTERCLASS_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024 * 1024;
+
 interface Masterclass {
   id: string;
   title: string;
@@ -21,6 +23,11 @@ export default function AdminMasterclasses() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ tone: 'info' | 'success' | 'error'; message: string }>({
+    tone: 'info',
+    message: 'No video selected yet.',
+  });
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     maestro: '',
@@ -30,6 +37,38 @@ export default function AdminMasterclasses() {
     lessons: '[]',
     video: null as File | null,
   });
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const validateVideoFile = (file: File | null) => {
+    if (!file) {
+      setUploadStatus({ tone: 'info', message: 'No video selected yet.' });
+      return null;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      setUploadStatus({ tone: 'error', message: 'Selected file is not a valid video. Please choose a video file.' });
+      return null;
+    }
+
+    if (file.size > MAX_MASTERCLASS_UPLOAD_SIZE_BYTES) {
+      setUploadStatus({
+        tone: 'error',
+        message: `Video is too large (${formatFileSize(file.size)}). Please upload a file smaller than ${(MAX_MASTERCLASS_UPLOAD_SIZE_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB.`,
+      });
+      return null;
+    }
+
+    setUploadStatus({
+      tone: 'success',
+      message: `Valid video selected (${formatFileSize(file.size)}).`,
+    });
+    return file;
+  };
 
   const fetchItems = async () => {
     const res = await fetch('/api/masterclasses');
@@ -42,8 +81,18 @@ export default function AdminMasterclasses() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const selectedVideo = validateVideoFile(formData.video);
+    if (!selectedVideo) {
+      return;
+    }
+
+    setUploading(true);
+    setUploadStatus({ tone: 'info', message: 'Validating video and uploading to Cloudinary…' });
+
     const form = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
+      if (value === null || value === undefined) return;
       if (key === 'video') {
         if (value instanceof File) form.append(key, value);
       } else {
@@ -56,17 +105,23 @@ export default function AdminMasterclasses() {
 
     const res = await fetch(url, {
       method,
-      body: editingId ? JSON.stringify(formData) : form,
-      headers: editingId ? { 'Content-Type': 'application/json' } : undefined,
+      body: form,
     });
+
+    const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
       setShowForm(false);
       setEditingId(null);
       resetForm();
+      setUploadStatus({ tone: 'success', message: 'Upload complete.' });
+      setUploading(false);
       fetchItems();
     } else {
-      alert('Failed to save');
+      const message = data.error || 'Failed to save';
+      setUploadStatus({ tone: 'error', message });
+      setUploading(false);
+      alert(message);
     }
   };
 
@@ -183,17 +238,30 @@ export default function AdminMasterclasses() {
                       type="file"
                       accept="video/*"
                       onChange={(e) => {
-                        if (e.target.files) setFormData({ ...formData, video: e.target.files[0] });
+                        const selectedFile = e.target.files?.[0] ?? null;
+                        const validatedFile = validateVideoFile(selectedFile);
+                        if (!validatedFile) {
+                          e.target.value = '';
+                          setFormData({ ...formData, video: null });
+                          return;
+                        }
+                        setFormData({ ...formData, video: validatedFile });
                       }}
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-purple-400 file:text-black hover:file:bg-purple-500"
                     />
+                    {uploadStatus.message && (
+                      <p className={`mt-2 text-sm ${uploadStatus.tone === 'error' ? 'text-red-400' : uploadStatus.tone === 'success' ? 'text-emerald-400' : 'text-white/60'}`}>
+                        {uploadStatus.message}
+                      </p>
+                    )}
                   </div>
                 )}
                 <button
                   type="submit"
-                  className="w-full bg-purple-400 hover:bg-purple-500 text-black py-2 rounded-lg font-medium transition"
+                  disabled={uploading}
+                  className="w-full bg-purple-400 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-not-allowed text-black py-2 rounded-lg font-medium transition"
                 >
-                  {editingId ? 'Update' : 'Upload'} Masterclass
+                  {uploading ? 'Uploading...' : editingId ? 'Update' : 'Upload'} Masterclass
                 </button>
               </form>
             </div>

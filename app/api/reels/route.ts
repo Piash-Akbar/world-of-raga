@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAll, createItem } from '@/lib/dataStore';
-import { uploadVideo } from '@/lib/cloudinary';
+import { uploadVideo, uploadLargeVideo, getVideoThumbnail } from '@/lib/cloudinary';
+
+export const runtime = 'nodejs';
 
 export async function GET() {
   return NextResponse.json(getAll('reels'));
@@ -20,7 +22,11 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await videoFile.arrayBuffer());
-    const videoUrl = await uploadVideo(buffer, 'reels');
+    const uploadResult = videoFile.size > 100 * 1024 * 1024
+      ? await uploadLargeVideo(buffer, 'reels')
+      : await uploadVideo(buffer, 'reels');
+    const videoUrl = uploadResult.secure_url;
+    const thumbnailUrl = getVideoThumbnail(uploadResult.public_id);
 
     const newItem = createItem('reels', {
       title,
@@ -28,14 +34,15 @@ export async function POST(req: NextRequest) {
       type,
       duration,
       videoUrl,
-      thumbnailUrl: '',
+      thumbnailUrl,
       views: 0,
       createdAt: new Date().toISOString(),
     });
 
     return NextResponse.json(newItem, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    console.error('Reel upload failed:', error);
+    const message = error instanceof Error ? error.message : 'Upload failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

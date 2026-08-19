@@ -19,6 +19,11 @@ export default function AdminReels() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ tone: 'info' | 'success' | 'error'; message: string }>({
+    tone: 'info',
+    message: 'No video selected yet.',
+  });
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,6 +31,39 @@ export default function AdminReels() {
     duration: 0,
     video: null as File | null,
   });
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const validateVideoFile = (file: File | null) => {
+    if (!file) {
+      setUploadStatus({ tone: 'info', message: 'No video selected yet.' });
+      return null;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      setUploadStatus({ tone: 'error', message: 'Selected file is not a valid video. Please choose a video file.' });
+      return null;
+    }
+
+    const maxBytes = 5 * 1024 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setUploadStatus({
+        tone: 'error',
+        message: `Video is too large (${formatFileSize(file.size)}). Please upload a file smaller than ${(maxBytes / (1024 * 1024 * 1024)).toFixed(0)}GB.`,
+      });
+      return null;
+    }
+
+    setUploadStatus({
+      tone: 'success',
+      message: `Valid video selected (${formatFileSize(file.size)}).`,
+    });
+    return file;
+  };
 
   const fetchItems = async () => {
     const res = await fetch('/api/reels');
@@ -38,6 +76,15 @@ export default function AdminReels() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const selectedVideo = validateVideoFile(formData.video);
+    if (!selectedVideo) {
+      return;
+    }
+
+    setUploading(true);
+    setUploadStatus({ tone: 'info', message: 'Validating video and uploading to Cloudinary…' });
+
     const form = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       if (key === 'video') {
@@ -60,9 +107,14 @@ export default function AdminReels() {
       setShowForm(false);
       setEditingId(null);
       resetForm();
+      setUploadStatus({ tone: 'success', message: 'Upload complete.' });
+      setUploading(false);
       fetchItems();
     } else {
-      alert('Failed to save');
+      const message = 'Failed to save';
+      setUploadStatus({ tone: 'error', message });
+      setUploading(false);
+      alert(message);
     }
   };
 
@@ -162,17 +214,30 @@ export default function AdminReels() {
                       accept="video/*"
                       required
                       onChange={(e) => {
-                        if (e.target.files) setFormData({ ...formData, video: e.target.files[0] });
+                        const selectedFile = e.target.files?.[0] ?? null;
+                        const validatedFile = validateVideoFile(selectedFile);
+                        if (!validatedFile) {
+                          e.target.value = '';
+                          setFormData({ ...formData, video: null });
+                          return;
+                        }
+                        setFormData({ ...formData, video: validatedFile });
                       }}
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-green-400 file:text-black hover:file:bg-green-500"
                     />
+                    {uploadStatus.message && (
+                      <p className={`mt-2 text-sm ${uploadStatus.tone === 'error' ? 'text-red-400' : uploadStatus.tone === 'success' ? 'text-emerald-400' : 'text-white/60'}`}>
+                        {uploadStatus.message}
+                      </p>
+                    )}
                   </div>
                 )}
                 <button
                   type="submit"
-                  className="w-full bg-green-400 hover:bg-green-500 text-black py-2 rounded-lg font-medium transition"
+                  disabled={uploading}
+                  className="w-full bg-green-400 hover:bg-green-500 disabled:opacity-60 disabled:cursor-not-allowed text-black py-2 rounded-lg font-medium transition"
                 >
-                  {editingId ? 'Update' : 'Upload'} Reel
+                  {uploading ? 'Uploading...' : editingId ? 'Update' : 'Upload'} Reel
                 </button>
               </form>
             </div>

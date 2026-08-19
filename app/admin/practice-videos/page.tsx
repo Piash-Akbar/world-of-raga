@@ -17,13 +17,18 @@ interface Video {
   createdAt: string;
 }
 
-const MAX_VIDEO_SIZE_BYTES = 4 * 1024 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 5 * 1024 * 1024 * 1024;
 
 export default function AdminPracticeVideos() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ tone: 'info' | 'success' | 'error'; message: string }>({
+    tone: 'info',
+    message: 'No video selected yet.',
+  });
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,6 +38,38 @@ export default function AdminPracticeVideos() {
     video: null as File | null,
   });
   const router = useRouter();
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const validateVideoFile = (file: File | null) => {
+    if (!file) {
+      setUploadStatus({ tone: 'info', message: 'No video selected yet.' });
+      return null;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      setUploadStatus({ tone: 'error', message: 'Selected file is not a valid video. Please choose a video file.' });
+      return null;
+    }
+
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      setUploadStatus({
+        tone: 'error',
+        message: `Video is too large (${formatFileSize(file.size)}). Please upload a file smaller than ${MAX_VIDEO_SIZE_BYTES / (1024 * 1024)}MB.`,
+      });
+      return null;
+    }
+
+    setUploadStatus({
+      tone: 'success',
+      message: `Valid video selected (${formatFileSize(file.size)}).`,
+    });
+    return file;
+  };
 
   // Fetch videos
   const fetchVideos = async () => {
@@ -51,10 +88,13 @@ export default function AdminPracticeVideos() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.video && formData.video.size > MAX_VIDEO_SIZE_BYTES) {
-      alert(`Video is too large. Please upload a file smaller than ${MAX_VIDEO_SIZE_BYTES / (1024 * 1024)}MB.`);
+    const selectedVideo = validateVideoFile(formData.video);
+    if (!selectedVideo) {
       return;
     }
+
+    setUploading(true);
+    setUploadStatus({ tone: 'info', message: 'Validating video and uploading to Cloudinary…' });
 
     const form = new FormData();
     form.append('title', formData.title);
@@ -86,9 +126,13 @@ export default function AdminPracticeVideos() {
         duration: 0,
         video: null,
       });
+      setUploadStatus({ tone: 'success', message: 'Upload complete.' });
+      setUploading(false);
       fetchVideos();
     } else {
       const errorData = await res.json().catch(() => ({ error: 'Failed to save video' }));
+      setUploadStatus({ tone: 'error', message: errorData.error || 'Failed to save video' });
+      setUploading(false);
       alert(errorData.error || 'Failed to save video');
     }
   };
@@ -213,28 +257,31 @@ export default function AdminPracticeVideos() {
                       accept="video/*"
                       required={!editingId}
                       onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          const selectedFile = e.target.files[0];
-
-                          if (selectedFile.size > MAX_VIDEO_SIZE_BYTES) {
-                            alert(`Video is too large. Please upload a file smaller than ${MAX_VIDEO_SIZE_BYTES / (1024 * 1024)}MB.`);
-                            e.target.value = '';
-                            setFormData({ ...formData, video: null });
-                            return;
-                          }
-
-                          setFormData({ ...formData, video: selectedFile });
+                        const selectedFile = e.target.files?.[0] ?? null;
+                        const validatedFile = validateVideoFile(selectedFile);
+                        if (!validatedFile) {
+                          e.target.value = '';
+                          setFormData({ ...formData, video: null });
+                          return;
                         }
+
+                        setFormData({ ...formData, video: validatedFile });
                       }}
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-amber-400 file:text-black hover:file:bg-amber-500"
                     />
+                    {uploadStatus.message && (
+                      <p className={`mt-2 text-sm ${uploadStatus.tone === 'error' ? 'text-red-400' : uploadStatus.tone === 'success' ? 'text-emerald-400' : 'text-white/60'}`}>
+                        {uploadStatus.message}
+                      </p>
+                    )}
                   </div>
                 )}
                 <button
                   type="submit"
-                  className="w-full bg-amber-400 hover:bg-amber-500 text-black py-2 rounded-lg font-medium transition"
+                  disabled={uploading}
+                  className="w-full bg-amber-400 hover:bg-amber-500 disabled:opacity-60 disabled:cursor-not-allowed text-black py-2 rounded-lg font-medium transition"
                 >
-                  {editingId ? 'Update' : 'Upload'} Video
+                  {uploading ? 'Uploading...' : editingId ? 'Update' : 'Upload'} Video
                 </button>
               </form>
             </div>

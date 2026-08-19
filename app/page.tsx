@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Play, ChevronRight, Star, Clock, Users, Music2, ArrowRight } from "lucide-react";
+import { getOptimizedVideoUrl } from '@/lib/videoUtils';
 
 // Types
 interface PracticeVideo {
@@ -166,7 +167,7 @@ export default function HomePage() {
                 <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
                   {video.videoUrl ? (
                     <video
-                      src={video.videoUrl}
+                      src={getOptimizedVideoUrl(video.videoUrl)}
                       className="w-full h-full object-cover"
                       controls
                       preload="metadata"
@@ -223,7 +224,7 @@ export default function HomePage() {
                 <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
                   {comp.previewVideoUrl || comp.videoUrl ? (
                     <video
-                      src={comp.previewVideoUrl || comp.videoUrl}
+                      src={getOptimizedVideoUrl(comp.previewVideoUrl || comp.videoUrl || '')}
                       className="w-full h-full object-cover"
                       controls
                       preload="metadata"
@@ -264,8 +265,8 @@ export default function HomePage() {
       <section className="py-16 px-4 max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">Learn from the Maestros</h2>
-            <p className="text-white/40">Long-form workshops, ideas, repertoire and artistry.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white">Masterclasses</h2>
+            <p className="text-white/40">Expert-led lessons on technique, repertoire, and artistic expression.</p>
           </div>
           <Link href="/masterclasses" className="text-amber-400 hover:text-amber-300 transition flex items-center gap-1 group">
             View all <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
@@ -287,7 +288,7 @@ export default function HomePage() {
                 <div className="relative aspect-video bg-gradient-to-br from-purple-900/30 to-amber-900/30 flex items-center justify-center overflow-hidden">
                   {mc.previewVideoUrl ? (
                     <video
-                      src={mc.previewVideoUrl}
+                      src={getOptimizedVideoUrl(mc.previewVideoUrl || '')}
                       className="w-full h-full object-cover"
                       controls
                       preload="metadata"

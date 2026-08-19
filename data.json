@@ -35,6 +35,17 @@
       "views": 0,
       "createdAt": "2026-08-19T04:44:25.852Z",
       "id": "mszlxhfgiap5"
+    },
+    {
+      "title": "fdsdfsgdf",
+      "description": "",
+      "level": "Beginner",
+      "duration": 5434,
+      "videoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787137189/world-of-raag/practice-videos/clyk9rcbw5u0oj9cpkrg.mp4",
+      "thumbnailUrl": "https://res.cloudinary.com/qqlzlily/video/upload/q_auto/f_auto/v1/world-of-raag/practice-videos/clyk9rcbw5u0oj9cpkrg.jpg?_a=BAMAAAiu0",
+      "isPublished": true,
+      "createdAt": "2026-08-19T10:59:51.812Z",
+      "id": "mszzcakke7it"
     }
   ],
   "compositions": [
@@ -58,38 +69,17 @@
   ],
   "masterclasses": [
     {
-      "title": "Bow Control Essentials",
-      "maestro": "Ustad A. Rahman",
-      "about": "A guided masterclass on grip, stroke balance, and smooth articulation for a richer violin sound.",
-      "price": 1499,
-      "duration": 2100,
-      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787113752/world-of-raag/compositions/ycuap4rthsplfjx6ygrp.mp4",
-      "thumbnailUrl": "",
-      "lessons": [
-        "Warm-up and posture",
-        "Bow grip fundamentals",
-        "Tone production drills"
-      ],
+      "title": "vxfv",
+      "maestro": "sfvsfdv",
+      "about": "",
+      "price": 434,
+      "duration": 0,
+      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/v1787137406/world-of-raag/masterclasses/yz7f6p1qrxszhdxng4sv.mp4",
+      "thumbnailUrl": "https://res.cloudinary.com/qqlzlily/video/upload/q_auto/f_auto/v1/world-of-raag/masterclasses/yz7f6p1qrxszhdxng4sv.jpg?_a=BAMAAAiu0",
+      "lessons": [],
       "isPublished": true,
-      "createdAt": "2026-08-19T05:00:00.000Z",
-      "id": "mszmaster01"
-    },
-    {
-      "title": "Aesthetics of Raga Performance",
-      "maestro": "Shankari Sen",
-      "about": "Learn how phrase shaping and emotional pacing bring a performance to life.",
-      "price": 1999,
-      "duration": 1800,
-      "previewVideoUrl": "https://res.cloudinary.com/qqlzlily/video/upload/f_auto,q_auto/v1787114549/world-of-raag/practice-videos/zytgmpecbqftvsapp2u5.mp4",
-      "thumbnailUrl": "",
-      "lessons": [
-        "Phrase architecture",
-        "Taans and timing",
-        "Performance aesthetics"
-      ],
-      "isPublished": true,
-      "createdAt": "2026-08-19T05:10:00.000Z",
-      "id": "mszmaster02"
+      "createdAt": "2026-08-19T11:03:28.010Z",
+      "id": "mszzgxe2niwe"
     }
   ],
   "reels": [

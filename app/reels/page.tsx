@@ -1,127 +1,178 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Music2, Play, ShoppingCart, Eye, ChevronDown, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Clock3, Film, Play, Volume2, X } from "lucide-react";
+import { getOptimizedVideoUrl } from '@/lib/videoUtils';
 
-interface Composition {
+interface Reel {
   id: string;
   title: string;
   description?: string;
-  level: string;
-  price: number;
+  type?: string;
   duration: number;
   videoUrl?: string;
-  pdfUrl?: string;
-  previewVideoUrl?: string;
-  tags: string[];
-  isPublished: boolean;
+  thumbnailUrl?: string;
+  views?: number;
+  createdAt?: string;
 }
 
-export default function CompositionsPage() {
-  const [compositions, setCompositions] = useState<Composition[]>([]);
+export default function ReelsPage() {
+  const [items, setItems] = useState<Reel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLevel, setSelectedLevel] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedReel, setSelectedReel] = useState<Reel | null>(null);
 
   useEffect(() => {
-    fetch('/api/compositions')
-      .then(res => res.json())
-      .then(data => {
-        setCompositions(data);
+    fetch('/api/reels')
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = compositions.filter(comp => {
-    const matchesLevel = selectedLevel === "All" || comp.level === selectedLevel;
-    const matchesSearch = comp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         comp.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesLevel && matchesSearch;
-  });
+  useEffect(() => {
+    if (!selectedReel) return;
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white/40">Loading...</div>;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedReel(null);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedReel]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white/40">Loading...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white">Premium Compositions</h1>
-          <p className="text-white/40">Full learning video + downloadable sheet music PDF.</p>
-        </div>
-
-        {/* Search and filter */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
-            <input
-              type="text"
-              placeholder="Search compositions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-amber-400"
-            />
-          </div>
-          <div className="relative">
-            <select
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              className="appearance-none pl-4 pr-10 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-amber-400 cursor-pointer min-w-[150px]"
+    <div className="min-h-screen bg-black text-white">
+      {selectedReel && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedReel(null)}
+        >
+          <div
+            className="relative w-full max-w-[420px] overflow-hidden rounded-[32px] border border-white/10 bg-black shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="absolute right-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white/80 transition hover:bg-black/70"
+              onClick={() => setSelectedReel(null)}
+              aria-label="Close reel"
             >
-              <option value="All">All Levels</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-          </div>
-        </div>
+              <X className="h-5 w-5" />
+            </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((comp) => (
-            <div key={comp.id} className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden border border-white/10 transition group">
-              <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
-                {comp.videoUrl || comp.previewVideoUrl ? (
-                  <video
-                    src={comp.videoUrl || comp.previewVideoUrl}
-                    className="w-full h-full object-cover"
-                    controls
-                    preload="metadata"
-                    playsInline
-                  />
-                ) : (
-                  <Music2 className="w-12 h-12 text-white/20" />
-                )}
-                <span className="absolute top-2 right-2 bg-amber-400/90 text-black text-xs px-2 py-1 rounded font-medium">৳{comp.price}</span>
-                <span className="absolute top-12 right-2 bg-white/90 text-black text-[10px] font-semibold px-2.5 py-1 rounded-md shadow-sm backdrop-blur-sm">
-                  {Math.floor(comp.duration / 60)}:{String(comp.duration % 60).padStart(2, '0')}
+            <div className="relative aspect-[9/16] bg-black">
+              {selectedReel.videoUrl ? (
+                <video
+                  src={getOptimizedVideoUrl(selectedReel.videoUrl)}
+                  className="h-full w-full object-cover"
+                  controls
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-900/40 via-black to-red-900/40 text-white/40">
+                  <Film className="h-16 w-16" />
+                </div>
+              )}
+            </div>
+
+            <div className="p-4">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <p className="text-xs uppercase tracking-[0.2em] text-amber-400">{selectedReel.type || 'Reel'}</p>
+                <span className="text-xs text-white/60">
+                  {Math.floor(selectedReel.duration / 60)}:{String(selectedReel.duration % 60).padStart(2, '0')}
                 </span>
               </div>
-              <div className="p-4">
-                <h3 className="text-white font-semibold">{comp.title}</h3>
-                <p className="text-white/40 text-sm mt-1 line-clamp-2">{comp.description}</p>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {comp.tags?.map((tag, i) => (
-                    <span key={i} className="text-xs bg-white/5 px-2 py-0.5 rounded text-white/40">{tag}</span>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-amber-400 text-sm">{comp.level}</span>
-                  <div className="flex gap-2">
-                    <button className="text-white/60 hover:text-white text-sm transition flex items-center gap-1">
-                      <Play className="w-4 h-4" /> Preview
-                    </button>
-                    <button className="bg-amber-400 hover:bg-amber-500 text-black text-sm px-3 py-1 rounded font-medium transition flex items-center gap-1">
-                      <ShoppingCart className="w-4 h-4" /> Buy
-                    </button>
+              <h2 className="text-xl font-semibold text-white">{selectedReel.title}</h2>
+              {selectedReel.description && (
+                <p className="mt-2 text-sm text-white/70">{selectedReel.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto px-4 py-8 sm:py-10">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-amber-400 text-sm uppercase tracking-[0.25em] font-medium">Short Form</p>
+            <h1 className="mt-2 text-3xl sm:text-4xl font-bold">Reels</h1>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-white/50 text-sm">
+            <Film className="w-4 h-4" />
+            {items.length} videos
+          </div>
+        </div>
+
+        {items.length === 0 ? (
+          <div className="flex min-h-[40vh] items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/40">
+            No reels yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {items.map((item) => (
+              <article
+                key={item.id}
+                className="group cursor-pointer overflow-hidden rounded-[28px] border border-white/10 bg-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
+                onClick={() => setSelectedReel(item)}
+              >
+                <div className="relative mx-auto aspect-[9/16] w-full overflow-hidden bg-black">
+                  {item.videoUrl ? (
+                    <video
+                      src={getOptimizedVideoUrl(item.videoUrl)}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                      muted
+                      autoPlay
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-900/40 via-black to-red-900/40">
+                      <Film className="h-14 w-14 text-white/30" />
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+
+                  <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-white/70 backdrop-blur-sm">
+                    <Volume2 className="h-3 w-3" />
+                    {item.type || "reel"}
+                  </div>
+
+                  <div className="absolute right-3 top-3 rounded-full bg-black/40 px-2 py-1 text-[10px] font-medium text-white/80 backdrop-blur-sm">
+                    {Math.floor(item.duration / 60)}:{String(item.duration % 60).padStart(2, '0')}
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-white/70 text-xs">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      {Math.floor(item.duration / 60)}:{String(item.duration % 60).padStart(2, '0')}
+                    </div>
+                    <h2 className="text-lg font-semibold text-white">{item.title}</h2>
+                    {item.description && (
+                      <p className="mt-1 line-clamp-2 text-sm text-white/70">{item.description}</p>
+                    )}
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-white/70">
+                        <Play className="h-3 w-3" />
+                        Play
+                      </span>
+                      <span className="text-xs text-white/60">{item.views ?? 0} views</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {filtered.length === 0 && <p className="text-white/40 text-center py-12">No compositions found.</p>}
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

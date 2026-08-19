@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Music, Plus, Edit, Trash2, X, Play } from 'lucide-react';
 
-const MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024;
+const MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024 * 1024;
 
 interface Composition {
   id: string;
@@ -25,6 +25,11 @@ export default function AdminCompositions() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ tone: 'info' | 'success' | 'error'; message: string }>({
+    tone: 'info',
+    message: 'No file selected yet.',
+  });
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,6 +40,63 @@ export default function AdminCompositions() {
     video: null as File | null,
     pdf: null as File | null,
   });
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const validateVideoFile = (file: File | null) => {
+    if (!file) {
+      setUploadStatus({ tone: 'info', message: 'No video selected yet.' });
+      return null;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      setUploadStatus({ tone: 'error', message: 'Selected file is not a valid video. Please choose a video file.' });
+      return null;
+    }
+
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      setUploadStatus({
+        tone: 'error',
+        message: `Video is too large (${formatFileSize(file.size)}). Please upload a file smaller than ${(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB.`,
+      });
+      return null;
+    }
+
+    setUploadStatus({
+      tone: 'success',
+      message: `Valid video selected (${formatFileSize(file.size)}).`,
+    });
+    return file;
+  };
+
+  const validatePdfFile = (file: File | null) => {
+    if (!file) {
+      return null;
+    }
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setUploadStatus({ tone: 'error', message: 'Selected file is not a valid PDF.' });
+      return null;
+    }
+
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      setUploadStatus({
+        tone: 'error',
+        message: `PDF is too large (${formatFileSize(file.size)}). Please upload a file smaller than ${(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB.`,
+      });
+      return null;
+    }
+
+    setUploadStatus({
+      tone: 'success',
+      message: `Valid PDF selected (${formatFileSize(file.size)}).`,
+    });
+    return file;
+  };
 
   const fetchItems = async () => {
     const res = await fetch('/api/compositions');
@@ -48,15 +110,14 @@ export default function AdminCompositions() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.video && formData.video.size > MAX_UPLOAD_SIZE_BYTES) {
-      alert(`Video is too large. Please upload a file smaller than ${(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB.`);
+    const selectedVideo = validateVideoFile(formData.video);
+    const selectedPdf = validatePdfFile(formData.pdf);
+    if (!selectedVideo || (formData.pdf && !selectedPdf)) {
       return;
     }
 
-    if (formData.pdf && formData.pdf.size > MAX_UPLOAD_SIZE_BYTES) {
-      alert(`PDF is too large. Please upload a file smaller than ${(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB.`);
-      return;
-    }
+    setUploading(true);
+    setUploadStatus({ tone: 'info', message: 'Validating files and uploading to Cloudinary…' });
 
     const form = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
@@ -75,14 +136,15 @@ export default function AdminCompositions() {
 
     const res = await fetch(url, {
       method,
-      body: editingId ? JSON.stringify(formData) : form,
-      headers: editingId ? { 'Content-Type': 'application/json' } : undefined,
+      body: form,
     });
 
     if (res.ok) {
       setShowForm(false);
       setEditingId(null);
       resetForm();
+      setUploadStatus({ tone: 'success', message: 'Upload complete.' });
+      setUploading(false);
       fetchItems();
     } else {
       let message = 'Failed to save';
@@ -92,6 +154,8 @@ export default function AdminCompositions() {
       } catch {
         message = 'Failed to save';
       }
+      setUploadStatus({ tone: 'error', message });
+      setUploading(false);
       alert(message);
     }
   };
@@ -215,7 +279,14 @@ export default function AdminCompositions() {
                         accept="video/*"
                         required={!editingId}
                         onChange={(e) => {
-                          if (e.target.files) setFormData({ ...formData, video: e.target.files[0] });
+                          const selectedFile = e.target.files?.[0] ?? null;
+                          const validatedFile = validateVideoFile(selectedFile);
+                          if (!validatedFile) {
+                            e.target.value = '';
+                            setFormData({ ...formData, video: null });
+                            return;
+                          }
+                          setFormData({ ...formData, video: validatedFile });
                         }}
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-amber-400 file:text-black hover:file:bg-amber-500"
                       />
@@ -226,18 +297,31 @@ export default function AdminCompositions() {
                         type="file"
                         accept=".pdf"
                         onChange={(e) => {
-                          if (e.target.files) setFormData({ ...formData, pdf: e.target.files[0] });
+                          const selectedFile = e.target.files?.[0] ?? null;
+                          const validatedFile = validatePdfFile(selectedFile);
+                          if (!validatedFile) {
+                            e.target.value = '';
+                            setFormData({ ...formData, pdf: null });
+                            return;
+                          }
+                          setFormData({ ...formData, pdf: validatedFile });
                         }}
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-amber-400 file:text-black hover:file:bg-amber-500"
                       />
                     </div>
+                    {uploadStatus.message && (
+                      <p className={`mt-2 text-sm ${uploadStatus.tone === 'error' ? 'text-red-400' : uploadStatus.tone === 'success' ? 'text-emerald-400' : 'text-white/60'}`}>
+                        {uploadStatus.message}
+                      </p>
+                    )}
                   </>
                 )}
                 <button
                   type="submit"
-                  className="w-full bg-amber-400 hover:bg-amber-500 text-black py-2 rounded-lg font-medium transition"
+                  disabled={uploading}
+                  className="w-full bg-amber-400 hover:bg-amber-500 disabled:opacity-60 disabled:cursor-not-allowed text-black py-2 rounded-lg font-medium transition"
                 >
-                  {editingId ? 'Update' : 'Upload'} Composition
+                  {uploading ? 'Uploading...' : editingId ? 'Update' : 'Upload'} Composition
                 </button>
               </form>
             </div>

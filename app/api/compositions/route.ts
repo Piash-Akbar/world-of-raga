@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAll, createItem } from '@/lib/dataStore';
-import { uploadVideo } from '@/lib/cloudinary';
+import { uploadVideo, uploadLargeVideo, uploadRaw, getVideoThumbnail } from '@/lib/cloudinary';
 
-const MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024;
+export const runtime = 'nodejs';
+
+const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024 * 1024;
 
 export async function GET() {
   const items = getAll('compositions');
@@ -28,6 +30,7 @@ export async function POST(req: NextRequest) {
     let videoUrl = '';
     let pdfUrl = '';
     let previewVideoUrl = '';
+    let thumbnailUrl = '';
 
     if (videoFile && videoFile.size > MAX_UPLOAD_SIZE_BYTES) {
       return NextResponse.json(
@@ -43,16 +46,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+
+    // let videoUrl = '';
     if (videoFile) {
       const buffer = Buffer.from(await videoFile.arrayBuffer());
-      videoUrl = await uploadVideo(buffer, 'compositions');
+      let uploadResult;
+      if (videoFile.size > 100 * 1024 * 1024) {
+        uploadResult = await uploadLargeVideo(buffer, 'compositions');
+      } else {
+        uploadResult = await uploadVideo(buffer, 'compositions');
+      }
+      videoUrl = uploadResult.secure_url;
+      previewVideoUrl = uploadResult.secure_url;
+      thumbnailUrl = getVideoThumbnail(uploadResult.public_id);
     }
 
     if (pdfFile) {
       try {
         const buffer = Buffer.from(await pdfFile.arrayBuffer());
         const pdfResult = await uploadRaw(buffer, 'compositions');
-        pdfUrl = pdfResult;
+        pdfUrl = pdfResult.secure_url;
       } catch (pdfError) {
         console.warn('PDF upload failed; continuing without PDF attachment.', pdfError);
         pdfUrl = '';
@@ -75,7 +88,7 @@ export async function POST(req: NextRequest) {
       videoUrl,
       pdfUrl,
       previewVideoUrl,
-      thumbnailUrl: '',
+      thumbnailUrl,
       tags,
       isPublished: true,
       createdAt: new Date().toISOString(),
@@ -83,31 +96,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(newItem, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    console.error('Composition upload failed:', error);
+    const message = error instanceof Error ? error.message : 'Upload failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-async function uploadRaw(fileBuffer: Buffer, folder: string): Promise<string> {
-  const cloudinary = require('cloudinary').v2;
-
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: 'raw',
-        folder: `world-of-raag/${folder}`,
-        chunk_size: 6 * 1024 * 1024,
-      },
-      (error: Error | null, result?: { secure_url?: string }) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve(result?.secure_url || '');
-      }
-    );
-
-    uploadStream.end(fileBuffer);
-  });
-}

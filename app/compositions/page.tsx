@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Music2, Play, ShoppingCart, Eye, ChevronDown, Search } from "lucide-react";
+import { getOptimizedVideoUrl } from '@/lib/videoUtils';
 
 interface Composition {
   id: string;
@@ -84,7 +85,7 @@ export default function CompositionsPage() {
               <div className="relative aspect-video bg-gradient-to-br from-amber-900/30 to-purple-900/30 flex items-center justify-center overflow-hidden">
                 {comp.previewVideoUrl || comp.videoUrl ? (
                   <video
-                    src={comp.previewVideoUrl || comp.videoUrl}
+                    src={getOptimizedVideoUrl(comp.previewVideoUrl || comp.videoUrl || '')}
                     className="w-full h-full object-cover"
                     controls
                     preload="metadata"
